@@ -1,0 +1,49 @@
+.product-card {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.card {
+    border: none;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.card-image {
+    height: 250px;
+    object-fit: cover;
+}
+
+.card-body {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 100%;
+}
+
+.card-title {
+    font-size: 1.25rem;
+    font-weight: bold;
+}
+
+.card-text {
+    font-size: 1rem;
+}
+
+@media (max-width: 768px) {
+
+    .form-select,
+    .form-control {
+        font-size: 0.9rem;
+    }
+
+    .card {
+        margin-bottom: 15px;
+    }
+
+    button {
+        font-size: 1rem;
+    }
+}
