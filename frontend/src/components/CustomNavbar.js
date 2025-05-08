@@ -1,4 +1,4 @@
-import React, { useContext } from 'react';
+import React, { useContext, useState, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import './CustomNavbar.css';
@@ -6,10 +6,31 @@ import './CustomNavbar.css';
 const CustomNavbar = () => {
   const { user, logout } = useContext(AuthContext);
   const navigate = useNavigate();
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [clickedOpen, setClickedOpen] = useState(false);
+  const timeoutRef = useRef(null);
 
   const handleLogout = () => {
     logout();
     navigate('/login');
+  };
+
+  const toggleDropdown = () => {
+    setDropdownOpen(!dropdownOpen);
+    setClickedOpen(!clickedOpen);
+  };
+
+  const handleMouseEnter = () => {
+    clearTimeout(timeoutRef.current);
+    if (!clickedOpen) setDropdownOpen(true);
+  };
+
+  const handleMouseLeave = () => {
+    if (!clickedOpen) {
+      timeoutRef.current = setTimeout(() => {
+        setDropdownOpen(false);
+      }, 200);
+    }
   };
 
   return (
@@ -21,19 +42,34 @@ const CustomNavbar = () => {
       </div>
 
       <div className="nav-logo">
-        <img src="logo-gold.png" style={{ width: '90px' }} />
+        <img src="logo-gold.png" style={{ width: '90px' }} alt="Logo" />
       </div>
 
       <div className="nav-right">
         {user ? (
           <>
             <Link to="/cart" className="cart-link">
-              <button  className="logout-btn">Cart</button>
+              <button className="logout-btn">Cart</button>
             </Link>
-            <Link to={user.role === 'admin' ? '/admin' : '/client'}>
-              {user.username || 'Profile'}
+            <Link to="/orders" className="order-link">
+              <button className="logout-btn">Orders</button>
             </Link>
-            <button onClick={handleLogout} className="logout-btn">Logout</button>
+
+            <div
+              className="profile-dropdown"
+              onMouseEnter={handleMouseEnter}
+              onMouseLeave={handleMouseLeave}
+            >
+              <button onClick={toggleDropdown} className="profile-icon ms-4 me-2 bg-warning">
+                {user.name?.charAt(0).toUpperCase() || 'P'}
+              </button>
+
+              {dropdownOpen && (
+                <div className="dropdown-menu">
+                  <button onClick={handleLogout}>Logout</button>
+                </div>
+              )}
+            </div>
           </>
         ) : (
           <>

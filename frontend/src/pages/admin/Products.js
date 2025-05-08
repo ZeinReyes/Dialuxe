@@ -132,7 +132,7 @@ const AdminProductPage = () => {
                                 <td>{idx + 1}</td>
                                 <td>{product.name}</td>
                                 <td>{product.brand}</td>
-                                <td>${product.price}</td>
+                                <td>₱{Number(product.price).toLocaleString()}</td>
                                 <td>{product.stock}</td>
                                 <td>
                                     {/* Display product image */}

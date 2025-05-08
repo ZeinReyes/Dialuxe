@@ -131,6 +131,7 @@ const Users = () => {
                             <Form.Select name="role" value={formData.role} onChange={handleChange}>
                                 <option value="client">Client</option>
                                 <option value="admin">Admin</option>
+                                <option value="rider">Rider</option>
                             </Form.Select>
                         </Form.Group>
                     </Form>

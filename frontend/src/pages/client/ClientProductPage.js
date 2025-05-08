@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { Row, Col, Card, Button, Form, InputGroup, Dropdown } from 'react-bootstrap';
+import { useNavigate } from 'react-router-dom';
 import { useCart } from '../../context/CartContext';
 import { FaShoppingCart, FaSearch, FaFilter } from 'react-icons/fa';
 import './ClientProductPage.css';
@@ -12,12 +13,13 @@ const ClientProductPage = () => {
     const [brandFilter, setBrandFilter] = useState('');
     const [priceFilter, setPriceFilter] = useState('');
     const { addToCart } = useCart();
+    const navigate = useNavigate();
 
     useEffect(() => {
         const fetchProducts = async () => {
             try {
                 const res = await axios.get('http://localhost:5000/api/products');
-                const inStockProducts = res.data.filter(p => p.stock > 0); // Only include products with stock
+                const inStockProducts = res.data.filter(p => p.stock > 0); 
                 setProducts(inStockProducts);
                 setFiltered(inStockProducts);
             } catch (error) {
@@ -138,7 +140,7 @@ const ClientProductPage = () => {
                                         <Button
                                             variant="dark"
                                             className="w-75 rounded-pill me-3"
-                                            onClick={() => alert('Redirecting to product details page')}
+                                            onClick={() => navigate(`/product/${product._id}`)}
                                         >
                                             View Details
                                         </Button>

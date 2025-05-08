@@ -21,7 +21,7 @@ const CartPage = () => {
             updateQuantity(id, item.quantity + 1);
         } else if (action === 'decrease') {
             if (item.quantity === 1) {
-                removeFromCart(id); // Remove item if quantity is 1
+                removeFromCart(id);
             } else {
                 updateQuantity(id, item.quantity - 1);
             }
@@ -42,9 +42,11 @@ const CartPage = () => {
     return (
         <div className="container mt-5 pt-5">
             <Row>
-                {/* Shopping Cart */}
                 <Col className='mb-4' md={8}>
-                    <h3 className="mt-5">Shopping Cart</h3>
+                    <div className="d-flex justify-content-between align-items-center mt-5">
+                        <h3 className="mb-0">Shopping Cart</h3>
+                        <Button variant="danger" onClick={clearCart}>Empty Cart</Button>
+                    </div>
                     {cart.length === 0 ? (
                         <p>Your cart is empty.</p>
                     ) : (
@@ -55,7 +57,7 @@ const CartPage = () => {
                                         <img src={item.image} alt={item.name} style={{ width: 80, height: 80, objectFit: 'cover' }} className="rounded" />
                                         <div className="ms-3">
                                             <h5>{item.name}</h5>
-                                            <p className="text-muted mb-1">Price: ₱{item.price.toFixed(2)}</p>
+                                            <p className="text-muted mb-1">Price: ₱{Number(item.price).toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
                                             <div className="input-group mb-0" style={{ maxWidth: 150 }}>
                                                 <Button variant="outline-secondary" size="sm" onClick={() => handleQuantityChange(item._id, 'decrease')}>−</Button>
                                                 <input type="text" className="form-control form-control-sm text-center" value={item.quantity} readOnly />
@@ -63,10 +65,9 @@ const CartPage = () => {
                                             </div>
                                         </div>
                                     </div>
-                                    <p className="fw-bold">₱{(item.price * item.quantity).toFixed(2)}</p>
+                                    <p className="fw-bold">₱{Number(item.price * item.quantity).toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
                                 </div>
                             ))}
-                            <Button variant="secondary mt-3" onClick={clearCart}>Clear Cart</Button>
                         </>
                     )}
                 </Col>
@@ -92,7 +93,7 @@ const CartPage = () => {
                             <div>
                                 <Card.Title className='mt-3'>Order Summary</Card.Title>
                                 <p>Items: <strong>{getCartCount()}</strong></p>
-                                <p>Amount: <strong>₱{getCartTotal().toFixed(2)}</strong></p>
+                                <p>Amount: <strong>₱{Number(getCartTotal()).toLocaleString(undefined, { minimumFractionDigits: 2 })}</strong></p>
                                 <hr className='mt-4' />
                             </div>
                             <Button variant="warning" className="w-100 mb-3 text-light" onClick={handleCheckout}>

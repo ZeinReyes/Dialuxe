@@ -7,7 +7,11 @@ import AdminPage from './pages/admin/dashboard';
 import ClientPage from './pages/client/ClientPage';
 import ClientProductPage from './pages/client/ClientProductPage';
 import CartPage from './pages/client/ClientCartPage';
-import Layout from './layouts/Layout'; 
+import CheckoutPage from './pages/client/ClientCheckoutPage';
+import OrderPage from './pages/client/ClientOrderPage';
+import ProductDetails from './pages/client/ProductDetailPage';
+import RiderOrders from './pages/rider/RiderPage';
+import Layout from './layouts/Layout';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
 function App() {
@@ -22,15 +26,23 @@ function App() {
         <Route index element={<ClientPage />} />
         <Route path="products" element={<ClientProductPage />} />
         <Route path="/cart" element={<CartPage />} />
+        <Route path="/orders" element={<OrderPage />} />
       </Route>
+
+      <Route path="/checkout" element={<CheckoutPage />} />
+      <Route path="product/:id" element={<ProductDetails />} />
 
       {user && user.role === 'admin' && (
         <Route path="/admin" element={<AdminPage />} />
       )}
 
+      {user && user.role === 'rider' && (
+        <Route path="/rider/orders" element={<RiderOrders />} />
+      )}
+
       <Route
         path="*"
-        element={<Navigate to={user?.role === 'admin' ? '/admin' : '/'} />}
+        element={<Navigate to={user?.role === 'admin' ? '/admin' : user?.role === 'rider' ? '/rider/orders' : '/'} />}
       />
     </Routes>
   );
