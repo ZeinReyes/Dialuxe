@@ -1,27 +1,58 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { Container, Card, Button } from 'react-bootstrap';
-import { useCart } from '../../context/CartContext'; // ✅ Make sure path is correct
+import { Container, Card, Button, Form } from 'react-bootstrap';
+import { useCart } from '../../context/CartContext';
 
 const ProductDetailsPage = () => {
     const { id } = useParams();
     const navigate = useNavigate();
-    const { addToCart } = useCart(); // ✅ Use the context
+    const { addToCart } = useCart();
     const [product, setProduct] = useState(null);
+    const [reviews, setReviews] = useState([]);
+    const [rating, setRating] = useState(5);
+    const [comment, setComment] = useState('');
 
     useEffect(() => {
         const fetchProduct = async () => {
             try {
-                const res = await axios.get(`http://localhost:5000/api/products/${id}`);
-                setProduct(res.data);
+                const { data } = await axios.get(`http://localhost:5000/api/products/${id}`);
+                setProduct(data);
             } catch (error) {
                 console.error('Failed to fetch product', error);
             }
         };
 
+        const fetchReviews = async () => {
+            try {
+                const { data } = await axios.get(`http://localhost:5000/api/products/${id}/reviews`);
+                setReviews(data);
+            } catch (error) {
+                console.error('Failed to fetch reviews', error);
+            }
+        };
+
         fetchProduct();
+        fetchReviews();
     }, [id]);
+
+    const handleAddToCart = () => {
+        addToCart(product);
+        console.log('Added to cart:', product);
+    };
+
+    const handleSubmitReview = async (e) => {
+        e.preventDefault();
+        try {
+            const { data } = await axios.post(`http://localhost:5000/api/products/${id}/reviews`, { rating, comment });
+            console.log(data);
+            setReviews(prevReviews => [...prevReviews, { rating, comment }]);
+            setRating(5); 
+            setComment('');
+        } catch (error) {
+            console.error('Failed to submit review', error);
+        }
+    };
 
     if (!product) {
         return (
@@ -30,11 +61,6 @@ const ProductDetailsPage = () => {
             </Container>
         );
     }
-
-    const handleAddToCart = () => {
-        addToCart(product); // ✅ Add product to cart
-        console.log('Added to cart:', product);
-    };
 
     return (
         <Container className="py-5 mt-5">
@@ -67,6 +93,56 @@ const ProductDetailsPage = () => {
                     </Button>
                 </div>
             </Card>
+
+            <div className="mt-5">
+                <h4>Customer Reviews</h4>
+                {reviews.length > 0 ? (
+                    <div>
+                        {reviews.map((review, index) => (
+                            <Card key={index} className="my-3">
+                                <Card.Body>
+                                    <Card.Title>Rating: {review.rating} / 5</Card.Title>
+                                    <Card.Text>{review.comment}</Card.Text>
+                                </Card.Body>
+                            </Card>
+                        ))}
+                    </div>
+                ) : (
+                    <p>No reviews yet.</p>
+                )}
+            </div>
+
+            <div className="mt-5">
+                <h5>Leave a Review</h5>
+                <Form onSubmit={handleSubmitReview}>
+                    <Form.Group controlId="reviewRating">
+                        <Form.Label>Rating</Form.Label>
+                        <Form.Control
+                            as="select"
+                            value={rating}
+                            onChange={e => setRating(Number(e.target.value))}
+                        >
+                            {[5, 4, 3, 2, 1].map(star => (
+                                <option key={star} value={star}>{star} Stars</option>
+                            ))}
+                        </Form.Control>
+                    </Form.Group>
+
+                    <Form.Group controlId="reviewComment" className="mt-3">
+                        <Form.Label>Comment</Form.Label>
+                        <Form.Control
+                            as="textarea"
+                            rows={3}
+                            value={comment}
+                            onChange={e => setComment(e.target.value)}
+                        />
+                    </Form.Group>
+
+                    <Button variant="dark" type="submit" className="mt-3">
+                        Submit Review
+                    </Button>
+                </Form>
+            </div>
         </Container>
     );
 };

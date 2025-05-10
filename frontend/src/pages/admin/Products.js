@@ -1,10 +1,13 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useContext } from 'react';
 import axios from 'axios';
 import { Modal, Button, Form, Table, Row, Col } from 'react-bootstrap';
 import 'bootstrap-icons/font/bootstrap-icons.css';
+import { AuthContext } from '../../context/AuthContext';
 
 const AdminProductPage = () => {
+    const { user } = useContext(AuthContext);
     const [products, setProducts] = useState([]);
+    const [logs, setLogs] = useState([]);
     const [showModal, setShowModal] = useState(false);
     const [formData, setFormData] = useState({
         name: '',
@@ -12,13 +15,12 @@ const AdminProductPage = () => {
         brand: '',
         price: '',
         stock: '',
-        image: '', // Only image URL
+        image: '', 
     });
     const [isEditing, setIsEditing] = useState(false);
     const [editId, setEditId] = useState(null);
     const [error, setError] = useState(null);
 
-    // Fetch products from the backend
     const fetchProducts = async () => {
         try {
             const res = await axios.get('http://localhost:5000/api/products');
@@ -28,11 +30,20 @@ const AdminProductPage = () => {
         }
     };
 
+    const fetchLogs = async () => {
+        try {
+            const res = await axios.get('http://localhost:5000/api/products/logs/all');
+            setLogs(res.data);
+        } catch {
+            setError('Failed to fetch logs.');
+        }
+    };
+
     useEffect(() => {
         fetchProducts();
+        fetchLogs();
     }, []);
 
-    // Handle form input changes
     const handleChange = (e) => {
         const { name, value } = e.target;
 
@@ -43,25 +54,37 @@ const AdminProductPage = () => {
         }
     };
 
-    // Handle form submission
     const handleSubmit = async () => {
         try {
+            const updatedFormData = {
+                ...formData,
+                price: parseFloat(formData.price), 
+                stock: parseInt(formData.stock, 10), 
+            };
+
             if (isEditing) {
-                await axios.put(`http://localhost:5000/api/products/${editId}`, formData);
+                await axios.put(`http://localhost:5000/api/products/${editId}`, {
+                    ...updatedFormData,  
+                    adminEmail: user.email, 
+                });
             } else {
-                await axios.post('http://localhost:5000/api/products', formData);
+                await axios.post('http://localhost:5000/api/products', {
+                    ...updatedFormData,
+                    adminEmail: user.email
+                });
             }
+
             setShowModal(false);
             setFormData({ name: '', description: '', brand: '', price: '', stock: '', image: '' });
             setIsEditing(false);
             setEditId(null);
-            fetchProducts();
+            fetchProducts();  
+            fetchLogs();     
         } catch (error) {
             setError('Failed to submit product. Please try again later.');
         }
     };
 
-    // Open modal for editing a product
     const handleEdit = (product) => {
         setFormData(product);
         setIsEditing(true);
@@ -69,12 +92,14 @@ const AdminProductPage = () => {
         setShowModal(true);
     };
 
-    // Handle product deletion
     const handleDelete = async (id) => {
         if (window.confirm('Are you sure you want to delete this product?')) {
             try {
-                await axios.delete(`http://localhost:5000/api/products/${id}`);
+                await axios.delete(`http://localhost:5000/api/products/${id}`, {
+                    data: { adminEmail: user.email }  
+                });
                 fetchProducts();
+                fetchLogs();
             } catch (error) {
                 setError('Failed to delete product. Please try again later.');
             }
@@ -92,7 +117,6 @@ const AdminProductPage = () => {
                 </Col>
             </Row>
 
-            {/* Error message */}
             {error && <div className="alert alert-danger">{error}</div>}
 
             <Row className="mb-3">
@@ -121,7 +145,6 @@ const AdminProductPage = () => {
                     </tr>
                 </thead>
                 <tbody>
-                    {/* Check if products are available */}
                     {products.length === 0 ? (
                         <tr>
                             <td colSpan="7" className="text-center">No products yet</td>
@@ -135,7 +158,6 @@ const AdminProductPage = () => {
                                 <td>₱{Number(product.price).toLocaleString()}</td>
                                 <td>{product.stock}</td>
                                 <td>
-                                    {/* Display product image */}
                                     {product.image ? (
                                         <img src={product.image} alt={product.name} style={{ width: '50px', height: '50px', objectFit: 'cover' }} />
                                     ) : (
@@ -153,6 +175,32 @@ const AdminProductPage = () => {
                             </tr>
                         ))
                     )}
+                </tbody>
+            </Table>
+
+            <h4 className="mt-5">Activity Logs</h4>
+            <Table striped bordered hover size="sm">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Action</th>
+                        <th>Performed By</th>
+                        <th>Target Product</th> 
+                        <th>Details</th>
+                        <th>Timestamp</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {logs.map((log, idx) => (
+                        <tr key={log._id}>
+                            <td>{idx + 1}</td>
+                            <td>{log.action}</td>
+                            <td>{log.performedBy}</td>
+                            <td>{log.targetProduct}</td>
+                            <td>{log.details}</td>
+                            <td>{new Date(log.timestamp).toLocaleString()}</td>
+                        </tr>
+                    ))}
                 </tbody>
             </Table>
 
@@ -191,7 +239,6 @@ const AdminProductPage = () => {
                         <Form.Group className="mb-2">
                             <Form.Label>Image URL</Form.Label>
                             <Form.Control type="text" name="image" value={formData.image} onChange={handleChange} placeholder="Enter the image URL" />
-                            {/* Preview image in the modal */}
                             {formData.image && (
                                 <div className="mt-3">
                                     <h6>Image Preview:</h6>

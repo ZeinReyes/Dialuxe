@@ -1,78 +1,74 @@
-import { createContext, useState, useContext } from 'react';
+import React, { createContext, useContext, useEffect, useState } from 'react';
+import axios from 'axios';
 
-export const CartContext = createContext();
+const CartContext = createContext();
+const API_BASE = 'http://localhost:5000/api/cart';
+const USER_ID = 'user123';
 
 export const CartProvider = ({ children }) => {
   const [cart, setCart] = useState([]);
 
-  const addToCart = (product) => {
-    const existingItem = cart.find((item) => item._id === product._id);
-
-    if (existingItem) {
-      if (existingItem.quantity >= product.stock) {
-        alert(`Only ${product.stock} item(s) in stock. You already have ${existingItem.quantity} in your cart.`);
-        return;
+  useEffect(() => {
+    const fetchCart = async () => {
+      try {
+        const { data } = await axios.get(`${API_BASE}/${USER_ID}`);
+        setCart(data);
+      } catch (err) {
+        console.error('Failed to fetch cart:', err);
       }
+    };
+    fetchCart();
+  }, []);
 
-      setCart(
-        cart.map((item) =>
-          item._id === product._id
-            ? { ...item, quantity: item.quantity + 1 }
-            : item
-        )
-      );
-    } else {
-      if (product.stock < 1) {
-        alert('This product is out of stock.');
-        return;
-      }
-
-      setCart([...cart, { ...product, quantity: 1 }]);
+  const syncCart = async (updatedCart) => {
+    setCart(updatedCart);
+    try {
+      await axios.post(`${API_BASE}/${USER_ID}`, { items: updatedCart });
+    } catch (err) {
+      console.error('Failed to sync cart:', err);
     }
   };
 
   const updateQuantity = (id, quantity) => {
-    const item = cart.find((item) => item._id === id);
-    if (!item) return;
-
-    if (quantity > item.stock) {
-      alert(`Cannot increase quantity beyond stock (${item.stock}).`);
-      return;
-    }
-
-    if (quantity < 1) return;
-
-    setCart(
-      cart.map((item) =>
-        item._id === id ? { ...item, quantity } : item
-      )
+    const updatedCart = cart.map(item =>
+      item._id === id ? { ...item, quantity } : item
     );
+    syncCart(updatedCart);
   };
 
   const removeFromCart = (id) => {
-    setCart(cart.filter((item) => item._id !== id));
+    const updatedCart = cart.filter(item => item._id !== id);
+    syncCart(updatedCart);
   };
 
-  const clearCart = () => setCart([]);
+  const clearCart = () => syncCart([]);
 
-  const getCartTotal = () => {
-    return cart.reduce((total, item) => total + item.price * item.quantity, 0);
+  const addToCart = (newItem) => {
+    const exists = cart.find(item => item._id === newItem._id);
+    const updatedCart = exists
+      ? cart.map(item =>
+        item._id === newItem._id
+          ? { ...item, quantity: item.quantity + 1 }
+          : item
+      )
+      : [...cart, { ...newItem, quantity: 1 }];
+    syncCart(updatedCart);
   };
 
-  const getCartCount = () => {
-    return cart.reduce((total, item) => total + item.quantity, 0);
-  };
+  const getCartCount = () => cart.reduce((acc, item) => acc + item.quantity, 0);
+  const getCartTotal = () =>
+    cart.reduce((acc, item) => acc + item.quantity * item.price, 0);
 
   return (
     <CartContext.Provider
       value={{
         cart,
-        addToCart,
         updateQuantity,
         removeFromCart,
         clearCart,
-        getCartTotal,
+        addToCart,
         getCartCount,
+        getCartTotal,
       }}
     >
       {children}

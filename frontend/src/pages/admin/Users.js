@@ -1,10 +1,13 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useContext } from 'react';
 import axios from 'axios';
 import { Modal, Button, Form, Table } from 'react-bootstrap';
 import 'bootstrap-icons/font/bootstrap-icons.css';
+import { AuthContext } from '../../context/AuthContext';
 
 const Users = () => {
+    const { user } = useContext(AuthContext);
     const [users, setUsers] = useState([]);
+    const [logs, setLogs] = useState([]);
     const [showModal, setShowModal] = useState(false);
     const [formData, setFormData] = useState({
         name: '',
@@ -19,13 +22,23 @@ const Users = () => {
         try {
             const res = await axios.get('http://localhost:5000/api/users');
             setUsers(res.data);
-        } catch (error) {
-            setError('Failed to fetch users. Please try again later.');
+        } catch {
+            setError('Failed to fetch users.');
+        }
+    };
+
+    const fetchLogs = async () => {
+        try {
+            const res = await axios.get('http://localhost:5000/api/users/logs/all');
+            setLogs(res.data);
+        } catch {
+            setError('Failed to fetch logs.');
         }
     };
 
     useEffect(() => {
         fetchUsers();
+        fetchLogs();
     }, []);
 
     const handleChange = (e) => {
@@ -34,21 +47,19 @@ const Users = () => {
 
     const handleSubmit = async () => {
         try {
-            const dataToSubmit = {
-                name: formData.name,
-                email: formData.email,
-                role: formData.role,
-            };
-
-            await axios.put(`http://localhost:5000/api/users/${editId}`, dataToSubmit);
+            await axios.put(`http://localhost:5000/api/users/${editId}`, {
+                ...formData,
+                adminEmail: user.email 
+            });
 
             setShowModal(false);
             setFormData({ name: '', email: '', role: 'client' });
             setIsEditing(false);
             setEditId(null);
             fetchUsers();
-        } catch (error) {
-            setError('Failed to update user. Please try again later.');
+            fetchLogs();
+        } catch {
+            setError('Failed to update user.');
         }
     };
 
@@ -59,13 +70,16 @@ const Users = () => {
         setShowModal(true);
     };
 
-    const handleDelete = async (id) => {
+    const handleDelete = async (id, email) => {
         if (window.confirm('Are you sure you want to delete this user?')) {
             try {
-                await axios.delete(`http://localhost:5000/api/users/${id}`);
+                await axios.delete(`http://localhost:5000/api/users/${id}`, {
+                    data: { adminEmail: user.email }  
+                });
                 fetchUsers();
-            } catch (error) {
-                setError('Failed to delete user. Please try again later.');
+                fetchLogs();
+            } catch {
+                setError('Failed to delete user.');
             }
         }
     };
@@ -87,28 +101,48 @@ const Users = () => {
                     </tr>
                 </thead>
                 <tbody>
-                    {users.length === 0 ? (
-                        <tr>
-                            <td colSpan="5" className="text-center">No users found</td>
+                    {users.map((user, idx) => (
+                        <tr key={user._id}>
+                            <td>{idx + 1}</td>
+                            <td>{user.name}</td>
+                            <td>{user.email}</td>
+                            <td>{user.role}</td>
+                            <td>
+                                <Button className="me-2" size="sm" variant="warning" onClick={() => handleEdit(user)}>
+                                    <i className="bi bi-pencil me-2"></i>Edit
+                                </Button>
+                                <Button size="sm" variant="danger" onClick={() => handleDelete(user._id, user.email)}>
+                                    <i className="bi bi-trash me-2"></i>Delete
+                                </Button>
+                            </td>
                         </tr>
-                    ) : (
-                        users.map((user, idx) => (
-                            <tr key={user._id}>
-                                <td>{idx + 1}</td>
-                                <td>{user.name}</td>
-                                <td>{user.email}</td>
-                                <td>{user.role}</td>
-                                <td>
-                                    <Button className='me-2' size="sm" variant="warning" onClick={() => handleEdit(user)}>
-                                        <i className="bi bi-pencil me-2"></i>Edit
-                                    </Button>
-                                    <Button size="sm" variant="danger" onClick={() => handleDelete(user._id)}>
-                                        <i className="bi bi-trash me-2"></i>Delete
-                                    </Button>
-                                </td>
-                            </tr>
-                        ))
-                    )}
+                    ))}
+                </tbody>
+            </Table>
+
+            <h4 className="mt-5">Activity Logs</h4>
+            <Table striped bordered hover size="sm">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Action</th>
+                        <th>Performed By</th>
+                        <th>Target User</th>
+                        <th>Details</th>
+                        <th>Timestamp</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {logs.map((log, idx) => (
+                        <tr key={log._id}>
+                            <td>{idx + 1}</td>
+                            <td>{log.action}</td>
+                            <td>{log.performedBy}</td>
+                            <td>{log.targetUser}</td>
+                            <td>{log.details}</td>
+                            <td>{new Date(log.timestamp).toLocaleString()}</td>
+                        </tr>
+                    ))}
                 </tbody>
             </Table>
 
@@ -120,11 +154,11 @@ const Users = () => {
                     <Form>
                         <Form.Group className="mb-2">
                             <Form.Label>Name</Form.Label>
-                            <Form.Control name="name" value={formData.name} onChange={handleChange} disabled required />
+                            <Form.Control name="name" value={formData.name} disabled />
                         </Form.Group>
                         <Form.Group className="mb-2">
                             <Form.Label>Email</Form.Label>
-                            <Form.Control type="email" name="email" value={formData.email} onChange={handleChange} disabled required />
+                            <Form.Control type="email" name="email" value={formData.email} disabled />
                         </Form.Group>
                         <Form.Group className="mb-2">
                             <Form.Label>Role</Form.Label>
@@ -138,9 +172,7 @@ const Users = () => {
                 </Modal.Body>
                 <Modal.Footer>
                     <Button variant="secondary" onClick={() => setShowModal(false)}>Cancel</Button>
-                    <Button variant="primary" onClick={handleSubmit}>
-                        Update User
-                    </Button>
+                    <Button variant="primary" onClick={handleSubmit}>Update User</Button>
                 </Modal.Footer>
             </Modal>
         </div>

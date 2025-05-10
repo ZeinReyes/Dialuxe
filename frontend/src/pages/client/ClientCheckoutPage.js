@@ -72,7 +72,6 @@ const CheckoutPage = () => {
                     </div>
                 </Col>
 
-                {/* Checkout Form */}
                 <Col md={6} className="bg-white p-4">
                     <h4 className="mb-4">Enter your shipping details</h4>
                     <Form onSubmit={handleSubmit}>

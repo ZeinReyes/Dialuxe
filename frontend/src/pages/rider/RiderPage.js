@@ -7,7 +7,6 @@ const RiderOrders = () => {
     const [error, setError] = useState(null);
     const [success, setSuccess] = useState(null);
 
-    // Fetch all orders
     const fetchOrders = async () => {
         try {
             const res = await axios.get('http://localhost:5000/api/orders');
@@ -21,12 +20,11 @@ const RiderOrders = () => {
         fetchOrders();
     }, []);
 
-    // Update order status to 'Delivering'
     const handleStartDelivery = async (orderId) => {
         try {
             const res = await axios.patch(`http://localhost:5000/api/orders/${orderId}/deliver`);
             setSuccess(`Order ${res.data._id} is now in Delivering status.`);
-            fetchOrders(); // Refetch orders to update the status on the page
+            fetchOrders(); 
         } catch (err) {
             setError('Failed to update order status.');
         }
@@ -43,7 +41,7 @@ const RiderOrders = () => {
                 <thead>
                     <tr>
                         <th>#</th>
-                        <th>Order ID</th> {/* Add Order ID column */}
+                        <th>Order ID</th>
                         <th>Customer</th>
                         <th>Address</th>
                         <th>Total Amount</th>
@@ -54,7 +52,7 @@ const RiderOrders = () => {
                 <tbody>
                     {orders.length === 0 ? (
                         <tr>
-                            <td colSpan="7" className="text-center">No orders available</td> {/* Adjust colspan to 7 */}
+                            <td colSpan="7" className="text-center">No orders available</td>
                         </tr>
                     ) : (
                         orders.map((order, idx) => (

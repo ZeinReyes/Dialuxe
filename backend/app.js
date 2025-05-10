@@ -6,6 +6,8 @@ import authRoutes from './src/routes/authRoutes.js';
 import productRoutes from './src/routes/productRoutes.js';
 import userRoutes from './src/routes/userRoutes.js';
 import orderRoutes from './src/routes/orderRoutes.js';
+import cartRoutes from './src/routes/cartRoutes.js';
+import reviewRoutes from './src/routes/reviewRoutes.js';
 
 dotenv.config();
 
@@ -32,7 +34,9 @@ mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopol
 
 app.use('/api/auth', authRoutes);
 app.use('/api/products', productRoutes);
+app.use('/api/cart', cartRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/orders', orderRoutes);
+app.use(reviewRoutes);
 
 export default app;

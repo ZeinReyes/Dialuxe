@@ -8,7 +8,6 @@ router.post('/', async (req, res) => {
     try {
         const { name, address, contact, payment_method, items, totalAmount } = req.body;
 
-        // Save the order
         const newOrder = new Order({
             name,
             address,
@@ -21,7 +20,6 @@ router.post('/', async (req, res) => {
 
         await newOrder.save();
 
-        // Update product stock
         for (const item of items) {
             await Product.findByIdAndUpdate(item._id, {
                 $inc: { stock: -item.quantity },
