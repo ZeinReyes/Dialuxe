@@ -83,7 +83,7 @@ const CartPage = () => {
                             right: '40px',
                             width: '450px',
                             height: '300px',
-                            zIndex: 1000,
+                            zIndex: 10,
                             display: 'flex',
                             flexDirection: 'column',
                             justifyContent: 'space-between'
@@ -96,7 +96,12 @@ const CartPage = () => {
                                 <p>Amount: <strong>₱{Number(getCartTotal()).toLocaleString(undefined, { minimumFractionDigits: 2 })}</strong></p>
                                 <hr className='mt-4' />
                             </div>
-                            <Button variant="warning" className="w-100 mb-3 text-light" onClick={handleCheckout}>
+                            <Button
+                                variant="warning"
+                                className="w-100 mb-3 text-light"
+                                onClick={handleCheckout}
+                                disabled={cart.length === 0} // Disable the button if the cart is empty
+                            >
                                 Proceed to Checkout
                             </Button>
                         </Card.Body>

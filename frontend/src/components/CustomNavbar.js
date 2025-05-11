@@ -38,7 +38,6 @@ const CustomNavbar = () => {
       <div className="nav-left">
         <Link to="/">Home</Link>
         <Link to="/products">Products</Link>
-        <Link to="/contact">Contact Us</Link>
       </div>
 
       <div className="nav-logo">
@@ -66,7 +65,10 @@ const CustomNavbar = () => {
 
               {dropdownOpen && (
                 <div className="dropdown-menu">
-                  <button onClick={handleLogout}>Logout</button>
+                  <Link to="/profile" className="profile-link">
+                    Profile
+                  </Link>
+                  <button className='ms-2' onClick={handleLogout}>Logout</button>
                 </div>
               )}
             </div>

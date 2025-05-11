@@ -1,3 +1,5 @@
+import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
 import User from '../models/User.js';
 import UserLog from '../models/UserLog.js';
 
@@ -79,5 +81,48 @@ export const deleteUser = async (req, res) => {
         res.json({ message: 'User deleted' });
     } else {
         res.status(404).json({ message: 'User not found' });
+    }
+};
+
+export const updateProfile = async (req, res) => {
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token) return res.status(401).json({ message: 'No token provided' });
+
+    try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        const user = await User.findById(decoded.id);
+
+        if (!user) return res.status(404).json({ message: 'User not found' });
+
+        const { name, email, password, confirmPassword } = req.body;
+
+        const updates = {};
+
+        if (name && name !== user.name) {
+            updates.name = name;
+        }
+
+        if (email && email !== user.email) {
+            const existing = await User.findOne({ email });
+            if (existing && existing._id.toString() !== user._id.toString()) {
+                return res.status(400).json({ message: 'Email already in use' });
+            }
+            updates.email = email;
+        }
+
+        if (password) {
+            if (password !== confirmPassword) {
+                return res.status(400).json({ message: 'Passwords do not match' });
+            }
+            updates.password = await bcrypt.hash(password, 10);
+        }
+
+        Object.assign(user, updates);
+        const updatedUser = await user.save();
+
+
+        res.json({ updatedUser });
+    } catch (err) {
+        res.status(401).json({ message: 'Invalid token', error: err.message });
     }
 };

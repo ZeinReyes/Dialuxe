@@ -18,14 +18,8 @@ function Register() {
             const response = await axios.post('http://localhost:5000/api/auth/register', { name, email, password });
             console.log(response);  
             if (response.status === 200 || response.status === 201) {
-                try {
-                    const res = await loginService({ email, password });
-                    login(res.data.user);
-                    localStorage.setItem('token', res.data.token);
-                    navigate(res.data.user.role === 'admin' ? '/admin' : '/dashboard');
-                } catch (err) {
-                    alert('Invalid credentials');
-                }
+                alert('Registration successful! Please check your email to verify your account.');
+                navigate('/login');
             }
         } catch (error) {
             console.error(error);

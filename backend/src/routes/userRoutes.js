@@ -4,7 +4,8 @@ import {
     getUser,
     getUserById,
     updateUser,
-    deleteUser
+    deleteUser,
+    updateProfile
 } from '../controllers/userController.js';
 import UserLog from '../models/UserLog.js';
 
@@ -22,6 +23,8 @@ router.get('/logs/all', async (req, res) => {
         res.status(500).json({ message: 'Failed to fetch logs', error: err.message });
     }
 });
+
+router.put('/update-profile', updateProfile); 
 
 router.route('/:id')
     .get(getUserById)
