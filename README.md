@@ -10,13 +10,11 @@ Dialuxe is a full-stack MERN (MongoDB, Express, React, Node.js) eCommerce platfo
 - Browse luxury watches with detailed specs and images.
 - Add items to cart and proceed to checkout.
 - Track orders in real-time via integrated maps.
-- Receive email notifications about orders.
 
 ### ⚙️ Admin
 - Manage products (CRUD operations).
 - View user accounts and assign roles.
 - Monitor and log product updates.
-- Oversee all orders and delivery statuses.
 
 ### 🛵 Rider
 - View assigned deliveries.
@@ -31,7 +29,7 @@ Dialuxe is a full-stack MERN (MongoDB, Express, React, Node.js) eCommerce platfo
 - **Backend:** Node.js, Express.js
 - **Database:** MongoDB
 - **Real-time Communication:** Socket.io
-- **Maps & Routing:** Leaflet + OpenRouteService API
+- **Maps & Routing:** Leaflet + OpenRouteService API + LocationIQ API
 - **Authentication:** JWT-based auth
 - **Styling:** Bootstrap 5
 
