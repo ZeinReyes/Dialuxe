@@ -1,11 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import { Container, Card, Spinner, Tab, Tabs, Table, Badge } from 'react-bootstrap';
+import { Container, Card, Spinner, Tab, Tabs, Table, Badge, Button, Modal, Row, Col } from 'react-bootstrap';
+import { Link } from 'react-router-dom';
 
 const ClientOrdersPage = () => {
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [showModal, setShowModal] = useState(false);
+    const [proofImage, setProofImage] = useState('');
+    const [orderDetails, setOrderDetails] = useState(null);
 
     useEffect(() => {
         const fetchOrders = async () => {
@@ -22,6 +26,18 @@ const ClientOrdersPage = () => {
         fetchOrders();
     }, []);
 
+    const handleShowProof = (image, order) => {
+        setProofImage(image);
+        setOrderDetails(order);
+        setShowModal(true);
+    };
+
+    const handleCloseModal = () => {
+        setShowModal(false);
+        setProofImage(''); 
+        setOrderDetails(null); 
+    };
+
     const renderOrders = (filteredOrders) => (
         <Table striped bordered hover responsive>
             <thead>
@@ -30,12 +46,14 @@ const ClientOrdersPage = () => {
                     <th>Items</th>
                     <th>Total</th>
                     <th>Status</th>
+                    <th>Location</th>
+                    <th>Action</th>
                 </tr>
             </thead>
             <tbody>
                 {filteredOrders.length === 0 ? (
                     <tr>
-                        <td colSpan="4" className="text-center">No orders found.</td>
+                        <td colSpan="6" className="text-center">No orders found.</td>
                     </tr>
                 ) : (
                     filteredOrders.map((order) => (
@@ -58,6 +76,29 @@ const ClientOrdersPage = () => {
                                 }>
                                     {order.status}
                                 </Badge>
+                            </td>
+                            <td>
+                                <Button
+                                    variant="link"
+                                    onClick={() => window.open(`https://www.google.com/maps?q=${order.latitude},${order.longitude}`, '_blank')}
+                                >
+                                    View Location
+                                </Button>
+                            </td>
+                            <td>
+                                {order.status.toLowerCase().trim() === 'delivered' && order.proofPhoto ? (
+                                    <Button
+                                        variant="success"
+                                        size="sm"
+                                        onClick={() => handleShowProof(order.proofPhoto, order)}
+                                    >
+                                        View Proof of Delivery
+                                    </Button>
+                                ) : ['pending', 'delivering'].includes(order.status.toLowerCase().trim()) ? (
+                                    <Link to={`/track-order/${order._id}`}>
+                                        <Button variant="info" size="sm">Track Order</Button>
+                                    </Link>
+                                ) : null}
                             </td>
                         </tr>
                     ))
@@ -82,6 +123,41 @@ const ClientOrdersPage = () => {
                     </Tab>
                 </Tabs>
             </Card>
+
+            <Modal show={showModal} onHide={handleCloseModal} size="lg">
+                <Modal.Header closeButton>
+                    <Modal.Title>Proof of Delivery</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                    <Row>
+                        <Col md={6}>
+                            <img
+                                src={`http://localhost:5000/uploads/proofs/${proofImage}`}
+                                alt="Proof of Delivery"
+                                className="img-fluid"
+                            />
+                        </Col>
+                        <Col md={6}>
+                            {orderDetails && (
+                                <>
+                                    <h5>Order Details</h5>
+                                    <ul>
+                                        <li><strong>Date:</strong> {new Date(orderDetails.date).toLocaleString()}</li>
+                                        <li><strong>Total Amount:</strong> ₱{orderDetails.totalAmount.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</li>
+                                        <li><strong>Status:</strong> {orderDetails.status}</li>
+                                    </ul>
+                                    <h6>Items</h6>
+                                    <ul>
+                                        {orderDetails.items.map((item, idx) => (
+                                            <li key={idx}>{item.name} x {item.quantity}</li>
+                                        ))}
+                                    </ul>
+                                </>
+                            )}
+                        </Col>
+                    </Row>
+                </Modal.Body>
+            </Modal>
         </Container>
     );
 };

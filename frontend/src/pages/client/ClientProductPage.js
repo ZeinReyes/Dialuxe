@@ -110,7 +110,6 @@ const ClientProductPage = () => {
                 </Col>
             </Row>
 
-            {/* Products Grid */}
             <Row>
                 {filtered.length === 0 ? (
                     <Col>

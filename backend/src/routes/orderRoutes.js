@@ -1,12 +1,29 @@
 import express from 'express';
+import multer from 'multer';
 import Order from '../models/Order.js';
 import Product from '../models/Product.js';
+import path from 'path';
+import fs from 'fs';
 
 const router = express.Router();
 
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        const uploadPath = 'uploads/proofs/';
+        fs.mkdirSync(uploadPath, { recursive: true });
+        cb(null, uploadPath);
+    },
+    filename: function (req, file, cb) {
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        const ext = path.extname(file.originalname);
+        cb(null, `proof-${uniqueSuffix}${ext}`);
+    }
+});
+const upload = multer({ storage });
+
 router.post('/', async (req, res) => {
     try {
-        const { name, address, contact, payment_method, items, totalAmount } = req.body;
+        const { name, address, contact, payment_method, items, totalAmount, latitude, longitude } = req.body;
 
         const newOrder = new Order({
             name,
@@ -16,6 +33,9 @@ router.post('/', async (req, res) => {
             items,
             totalAmount,
             status: 'Pending',
+            date: new Date(),
+            latitude,
+            longitude,
         });
 
         await newOrder.save();
@@ -39,6 +59,21 @@ router.get('/', async (req, res) => {
         res.json(orders);
     } catch (err) {
         res.status(500).json({ message: 'Failed to fetch orders' });
+    }
+});
+
+router.get('/track-order/:orderId', async (req, res) => {
+    try {
+        const orderId = req.params.orderId;
+        const order = await Order.findById(orderId);
+
+        if (!order) {
+            return res.status(404).json({ message: 'Order not found' });
+        }
+
+        res.json(order);
+    } catch (err) {
+        res.status(500).json({ message: 'Failed to fetch order details' });
     }
 });
 
@@ -67,6 +102,22 @@ router.patch('/:id/deliver', async (req, res) => {
         res.json(updatedOrder);
     } catch (err) {
         res.status(500).json({ message: 'Failed to update order status' });
+    }
+});
+
+router.post('/:id/deliver-proof', upload.single('photo'), async (req, res) => {
+    try {
+        const order = await Order.findById(req.params.id);
+        if (!order) return res.status(404).json({ message: 'Order not found' });
+
+        order.status = 'Delivered';
+        order.proofPhoto = req.file.filename;
+        await order.save();
+
+        res.json(order);
+    } catch (err) {
+        console.error('Error uploading delivery proof:', err);
+        res.status(500).json({ message: 'Failed to upload delivery proof' });
     }
 });
 

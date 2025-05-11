@@ -93,56 +93,6 @@ const ProductDetailsPage = () => {
                     </Button>
                 </div>
             </Card>
-
-            <div className="mt-5">
-                <h4>Customer Reviews</h4>
-                {reviews.length > 0 ? (
-                    <div>
-                        {reviews.map((review, index) => (
-                            <Card key={index} className="my-3">
-                                <Card.Body>
-                                    <Card.Title>Rating: {review.rating} / 5</Card.Title>
-                                    <Card.Text>{review.comment}</Card.Text>
-                                </Card.Body>
-                            </Card>
-                        ))}
-                    </div>
-                ) : (
-                    <p>No reviews yet.</p>
-                )}
-            </div>
-
-            <div className="mt-5">
-                <h5>Leave a Review</h5>
-                <Form onSubmit={handleSubmitReview}>
-                    <Form.Group controlId="reviewRating">
-                        <Form.Label>Rating</Form.Label>
-                        <Form.Control
-                            as="select"
-                            value={rating}
-                            onChange={e => setRating(Number(e.target.value))}
-                        >
-                            {[5, 4, 3, 2, 1].map(star => (
-                                <option key={star} value={star}>{star} Stars</option>
-                            ))}
-                        </Form.Control>
-                    </Form.Group>
-
-                    <Form.Group controlId="reviewComment" className="mt-3">
-                        <Form.Label>Comment</Form.Label>
-                        <Form.Control
-                            as="textarea"
-                            rows={3}
-                            value={comment}
-                            onChange={e => setComment(e.target.value)}
-                        />
-                    </Form.Group>
-
-                    <Button variant="dark" type="submit" className="mt-3">
-                        Submit Review
-                    </Button>
-                </Form>
-            </div>
         </Container>
     );
 };

@@ -20,6 +20,9 @@ const orderSchema = new mongoose.Schema({
         default: 'Pending'
     },
     date: { type: Date, default: Date.now },
+    latitude: { type: Number, required: true },
+    longitude: { type: Number, required: true },
+    proofPhoto: { type: String }
 });
 
 const Order = mongoose.model('Order', orderSchema);

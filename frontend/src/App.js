@@ -12,9 +12,11 @@ import CheckoutPage from './pages/client/ClientCheckoutPage';
 import OrderPage from './pages/client/ClientOrderPage';
 import ProductDetails from './pages/client/ProductDetailPage';
 import ProfilePage from './pages/client/ProfilePage';
+import OrderTrackingPage from './pages/client/OrderTrackingPage';
 import RiderOrders from './pages/rider/RiderPage';
 import Layout from './layouts/Layout';
 import 'bootstrap/dist/css/bootstrap.min.css';
+import 'leaflet/dist/leaflet.css';
 
 function App() {
   const { user } = useContext(AuthContext);
@@ -35,6 +37,7 @@ function App() {
       <Route path="/profile" element={<ProfilePage />} />
       <Route path="/checkout" element={<CheckoutPage />} />
       <Route path="product/:id" element={<ProductDetails />} />
+      <Route path="/track-order/:orderId" element={<OrderTrackingPage />} />
 
       {user?.role === 'admin' && (
         <Route path="/admin" element={<AdminPage />} />
